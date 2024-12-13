@@ -1,8 +1,6 @@
 "use client";
-import { Button, Divider, Input, Modal } from "antd";
+import { Button, Divider, Input, Modal, Select } from "antd";
 import React, { useState } from "react";
-import { TbExclamationCircleFilled } from "react-icons/tb";
-const { confirm } = Modal;
 
 type Product = {
   id: number;
@@ -18,6 +16,9 @@ function Posbody() {
   const [shipping, setShipping] = useState(0);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [payment, setPayment] = useState(0);
+  const [receivedAmount, setReceivedAmount] = useState(0);
+  const [paymentType, setPaymentType] = useState("Cash");
+  const [paymentStatus, setPaymentStatus] = useState("paid");
 
   const products: Product[] = [
     { id: 1, name: "New Demo Product", price: 110, qty: 1, tax: 10 },
@@ -43,9 +44,7 @@ function Posbody() {
   const updateQty = (id: number, qtyChange: number) => {
     setCart(
       cart.map((item) =>
-        item.id === id
-          ? { ...item, qty: Math.max(1, item.qty + qtyChange) }
-          : item
+        item.id === id ? { ...item, qty: Math.max(1, item.qty + qtyChange) } : item
       )
     );
   };
@@ -55,8 +54,12 @@ function Posbody() {
   };
 
   const resetCart = () => {
-    setCart([]);
+    Modal.confirm({
+      title: "Are you sure you want to reset the cart?",
+      onOk: () => setCart([]),
+    });
   };
+
   const handlePayNow = () => {
     setIsModalVisible(true);
   };
@@ -71,11 +74,9 @@ function Posbody() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const totalTax = cart.reduce(
-    (sum, item) => sum + (item.price * item.qty * (item.tax || 0)) / 100,
-    0
-  );
+  const totalTax = cart.reduce((sum, item) => sum + (item.price * item.qty * (item.tax || 0)) / 100, 0);
   const total = subtotal - (subtotal * discount) / 100 + shipping + totalTax;
+  const changeReturn = receivedAmount - total;
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
@@ -102,9 +103,7 @@ function Posbody() {
                     <tr key={item.id} className="border-b">
                       <td className="p-2">
                         <p>{item.name}</p>
-                        <p className="text-sm text-gray-500">
-                          TAX: {item.tax || 0}%
-                        </p>
+                        <p className="text-sm text-gray-500">TAX: {item.tax || 0}%</p>
                       </td>
                       <td className="p-2 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -123,16 +122,9 @@ function Posbody() {
                           </button>
                         </div>
                       </td>
+                      <td className="p-2 text-center">€{item.price.toFixed(2)}</td>
                       <td className="p-2 text-center">
-                        €{item.price.toFixed(2)}
-                      </td>
-                      <td className="p-2 text-center">
-                        €
-                        {(
-                          item.price *
-                          item.qty *
-                          (1 + (item.tax || 0) / 100)
-                        ).toFixed(2)}
+                        €{(item.price * item.qty * (1 + (item.tax || 0) / 100)).toFixed(2)}
                       </td>
                       <td className="p-2 text-center">
                         <button
@@ -180,9 +172,7 @@ function Posbody() {
                 </div>
                 <div className="flex items-center mt-4">
                   <span className="text-lg font-bold">Total: </span>
-                  <span className="text-lg font-bold">
-                    € {total.toFixed(2)}
-                  </span>
+                  <span className="text-lg font-bold">€ {total.toFixed(2)}</span>
                 </div>
               </div>
               <div className="mt-6 text-center">
@@ -193,7 +183,7 @@ function Posbody() {
                   Pay Now
                 </button>
                 <button
-                  onClick={() => resetCart()}
+                  onClick={resetCart}
                   className="bg-red-600 text-white px-4 py-2 rounded shadow ml-4"
                 >
                   Reset
@@ -224,20 +214,81 @@ function Posbody() {
       </div>
 
       <Modal
-        title="Payment"
+        title="Make Payment"
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
+        footer={null}
       >
-        <div className="flex flex-col items-center">
-          <p className="font-bold mb-4">Total: €{total.toFixed(2)}</p>
-          <Input
-            type="number"
-            placeholder="Enter payment amount"
-            value={payment}
-            onChange={(e) => setPayment(Number(e.target.value))}
-            className="text-center border rounded"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="font-bold">Received Amount:</label>
+            <Input
+              type="number"
+              value={receivedAmount}
+              onChange={(e) => setReceivedAmount(Number(e.target.value))}
+              className="w-full text-center border rounded"
+            />
+          </div>
+          <div>
+            <label className="font-bold">Paying Amount:</label>
+            <Input
+              type="number"
+              value={total}
+              disabled
+              className="w-full text-center border rounded bg-gray-100"
+            />
+          </div>
+          <div>
+            <label className="font-bold">Payment Type:</label>
+            <Select
+              value={paymentType}
+              onChange={(value) => setPaymentType(value)}
+              className="w-full"
+            >
+              <Select.Option value="Cash">Cash</Select.Option>
+              <Select.Option value="Card">Card</Select.Option>
+              <Select.Option value="Online">Online</Select.Option>
+            </Select>
+          </div>
+          <div>
+            <label className="font-bold">Payment Status:</label>
+            <Input
+              value={paymentStatus}
+              onChange={(e) => setPaymentStatus(e.target.value)}
+              className="w-full text-center border rounded"
+            />
+          </div>
+          <div>
+            <label className="font-bold">Due Amount:</label>
+            <Input
+              type="number"
+              value={Math.max(0, total - receivedAmount).toFixed(2)}
+              disabled
+              className="w-full text-center border rounded bg-gray-100"
+            />
+          </div>
+          <div>
+            <label className="font-bold">Change Return:</label>
+            <Input
+              type="number"
+              value={Math.max(0, changeReturn).toFixed(2)}
+              disabled
+              className="w-full text-center border rounded bg-gray-100"
+            />
+          </div>
+          <div className="col-span-2">
+            <label className="font-bold">Notes:</label>
+            <Input.TextArea className="w-full border rounded" rows={3} />
+          </div>
+        </div>
+        <div className="flex justify-end mt-4">
+          <Button onClick={handleCancel} className="mr-4">
+            Cancel
+          </Button>
+          <Button type="primary" onClick={handleOk}>
+            Submit
+          </Button>
         </div>
       </Modal>
     </div>
