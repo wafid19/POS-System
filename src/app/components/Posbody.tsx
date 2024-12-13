@@ -8,6 +8,9 @@ type Product = {
   price: number;
   qty: number;
   tax?: number;
+  warehouse: string;
+  category: string;
+  brand: string;
 };
 
 function Posbody() {
@@ -19,14 +22,74 @@ function Posbody() {
   const [receivedAmount, setReceivedAmount] = useState(0);
   const [paymentType, setPaymentType] = useState("Cash");
   const [paymentStatus, setPaymentStatus] = useState("paid");
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string | undefined>();
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedBrand, setSelectedBrand] = useState<string | undefined>();
 
   const products: Product[] = [
-    { id: 1, name: "New Demo Product", price: 110, qty: 1, tax: 10 },
-    { id: 2, name: "Adaptateur Pot", price: 120, qty: 1, tax: 0 },
-    { id: 3, name: "Adaptateur Pot", price: 120, qty: 1, tax: 0 },
-    { id: 4, name: "Adaptateur Pot", price: 120, qty: 1, tax: 0 },
-    { id: 5, name: "Adaptateur Pot", price: 120, qty: 1, tax: 0 },
+    {
+      id: 1,
+      name: "New Demo Product",
+      price: 110,
+      qty: 1,
+      tax: 10,
+      warehouse: "Warehouse A",
+      category: "Electronics",
+      brand: "Brand X",
+    },
+    {
+      id: 2,
+      name: "Adaptateur Pot",
+      price: 120,
+      qty: 1,
+      tax: 0,
+      warehouse: "Warehouse B",
+      category: "Home",
+      brand: "Brand Y",
+    },
+    {
+      id: 3,
+      name: "Adaptateur Pot",
+      price: 120,
+      qty: 1,
+      tax: 0,
+      warehouse: "Warehouse A",
+      category: "Home",
+      brand: "Brand Z",
+    },
+    {
+      id: 4,
+      name: "Adaptateur Pot",
+      price: 120,
+      qty: 1,
+      tax: 0,
+      warehouse: "Warehouse C",
+      category: "Garden",
+      brand: "Brand Y",
+    },
+    {
+      id: 5,
+      name: "Adaptateur Pot",
+      price: 120,
+      qty: 1,
+      tax: 0,
+      warehouse: "Warehouse B",
+      category: "Electronics",
+      brand: "Brand X",
+    },
   ];
+
+  const warehouses = Array.from(new Set(products.map((product) => product.warehouse)));
+  const categories = Array.from(new Set(products.map((product) => product.category)));
+  const brands = Array.from(new Set(products.map((product) => product.brand)));
+
+  const filteredProducts = products.filter((product) => {
+    return (
+      (!selectedWarehouse || product.warehouse === selectedWarehouse) &&
+      (!selectedCategory || product.category === selectedCategory) &&
+      (!selectedBrand || product.brand === selectedBrand)
+    );
+  });
 
   const addToCart = (product: Product) => {
     const exists = cart.find((item) => item.id === product.id);
@@ -44,7 +107,9 @@ function Posbody() {
   const updateQty = (id: number, qtyChange: number) => {
     setCart(
       cart.map((item) =>
-        item.id === id ? { ...item, qty: Math.max(1, item.qty + qtyChange) } : item
+        item.id === id
+          ? { ...item, qty: Math.max(1, item.qty + qtyChange) }
+          : item
       )
     );
   };
@@ -74,12 +139,53 @@ function Posbody() {
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-  const totalTax = cart.reduce((sum, item) => sum + (item.price * item.qty * (item.tax || 0)) / 100, 0);
+  const totalTax = cart.reduce(
+    (sum, item) => sum + (item.price * item.qty * (item.tax || 0)) / 100,
+    0
+  );
   const total = subtotal - (subtotal * discount) / 100 + shipping + totalTax;
   const changeReturn = receivedAmount - total;
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
+      <div className="mb-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Select
+          placeholder="Choose warehouse"
+          onChange={(value) => setSelectedWarehouse(value)}
+          className="w-full"
+          allowClear
+        >
+          {warehouses.map((warehouse) => (
+            <Select.Option key={warehouse} value={warehouse}>
+              {warehouse}
+            </Select.Option>
+          ))}
+        </Select>
+        <Select
+          placeholder="Select category"
+          onChange={(value) => setSelectedCategory(value)}
+          className="w-full"
+          allowClear
+        >
+          {categories.map((category) => (
+            <Select.Option key={category} value={category}>
+              {category}
+            </Select.Option>
+          ))}
+        </Select>
+        <Select
+          placeholder="Select brand"
+          onChange={(value) => setSelectedBrand(value)}
+          className="w-full"
+          allowClear
+        >
+          {brands.map((brand) => (
+            <Select.Option key={brand} value={brand}>
+              {brand}
+            </Select.Option>
+          ))}
+        </Select>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Cart Section */}
         <div className="bg-white p-6 rounded shadow-lg">
@@ -103,7 +209,9 @@ function Posbody() {
                     <tr key={item.id} className="border-b">
                       <td className="p-2">
                         <p>{item.name}</p>
-                        <p className="text-sm text-gray-500">TAX: {item.tax || 0}%</p>
+                        <p className="text-sm text-gray-500">
+                          TAX: {item.tax || 0}%
+                        </p>
                       </td>
                       <td className="p-2 text-center">
                         <div className="flex items-center justify-center gap-2">
@@ -122,9 +230,16 @@ function Posbody() {
                           </button>
                         </div>
                       </td>
-                      <td className="p-2 text-center">€{item.price.toFixed(2)}</td>
                       <td className="p-2 text-center">
-                        €{(item.price * item.qty * (1 + (item.tax || 0) / 100)).toFixed(2)}
+                        €{item.price.toFixed(2)}
+                      </td>
+                      <td className="p-2 text-center">
+                        €
+                        {(
+                          item.price *
+                          item.qty *
+                          (1 + (item.tax || 0) / 100)
+                        ).toFixed(2)}
                       </td>
                       <td className="p-2 text-center">
                         <button
@@ -172,7 +287,9 @@ function Posbody() {
                 </div>
                 <div className="flex items-center mt-4">
                   <span className="text-lg font-bold">Total: </span>
-                  <span className="text-lg font-bold">€ {total.toFixed(2)}</span>
+                  <span className="text-lg font-bold">
+                    € {total.toFixed(2)}
+                  </span>
                 </div>
               </div>
               <div className="mt-6 text-center">
@@ -195,7 +312,7 @@ function Posbody() {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div
               key={product.id}
               className="bg-white p-6 rounded shadow flex flex-col items-center text-center"
