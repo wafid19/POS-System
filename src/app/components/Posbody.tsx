@@ -1,6 +1,8 @@
 "use client";
-import { Button, Divider, Input } from "antd";
+import { Button, Divider, Input, Modal } from "antd";
 import React, { useState } from "react";
+import { TbExclamationCircleFilled } from "react-icons/tb";
+const { confirm } = Modal;
 
 type Product = {
   id: number;
@@ -14,6 +16,8 @@ function Posbody() {
   const [cart, setCart] = useState<Product[]>([]);
   const [discount, setDiscount] = useState(0);
   const [shipping, setShipping] = useState(0);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [payment, setPayment] = useState(0);
 
   const products: Product[] = [
     { id: 1, name: "New Demo Product", price: 110, qty: 1, tax: 10 },
@@ -48,6 +52,22 @@ function Posbody() {
 
   const removeItem = (id: number) => {
     setCart(cart.filter((item) => item.id !== id));
+  };
+
+  const resetCart = () => {
+    setCart([]);
+  };
+  const handlePayNow = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+    setCart([]);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
   };
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
@@ -166,8 +186,17 @@ function Posbody() {
                 </div>
               </div>
               <div className="mt-6 text-center">
-                <button className="bg-green-600 text-white px-4 py-2 rounded shadow">
+                <button
+                  onClick={handlePayNow}
+                  className="bg-green-600 text-white px-4 py-2 rounded shadow"
+                >
                   Pay Now
+                </button>
+                <button
+                  onClick={() => resetCart()}
+                  className="bg-red-600 text-white px-4 py-2 rounded shadow ml-4"
+                >
+                  Reset
                 </button>
               </div>
             </>
@@ -193,6 +222,24 @@ function Posbody() {
           ))}
         </div>
       </div>
+
+      <Modal
+        title="Payment"
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+      >
+        <div className="flex flex-col items-center">
+          <p className="font-bold mb-4">Total: €{total.toFixed(2)}</p>
+          <Input
+            type="number"
+            placeholder="Enter payment amount"
+            value={payment}
+            onChange={(e) => setPayment(Number(e.target.value))}
+            className="text-center border rounded"
+          />
+        </div>
+      </Modal>
     </div>
   );
 }
