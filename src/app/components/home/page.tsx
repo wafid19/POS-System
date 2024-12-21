@@ -1,9 +1,10 @@
-import React from 'react'
+"use client"
 
+import React from 'react'
 import { useState } from "react";
 
 type Product = {
-  id: number;
+  id: any;
   name: string;
   price: number;
   qty: number;

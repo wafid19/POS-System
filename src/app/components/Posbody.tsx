@@ -1,5 +1,5 @@
 "use client";
-import { Button, Divider, Input, Modal, Select } from "antd";
+import { Button, DatePicker, Divider, Input, Modal, Select } from "antd";
 import React, { useState } from "react";
 
 type Product = {
@@ -22,8 +22,12 @@ function Posbody() {
   const [receivedAmount, setReceivedAmount] = useState(0);
   const [paymentType, setPaymentType] = useState("Cash");
   const [paymentStatus, setPaymentStatus] = useState("paid");
-  const [selectedWarehouse, setSelectedWarehouse] = useState<string | undefined>();
-  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
+  const [selectedWarehouse, setSelectedWarehouse] = useState<
+    string | undefined
+  >();
+  const [selectedCategory, setSelectedCategory] = useState<
+    string | undefined
+  >();
   const [selectedBrand, setSelectedBrand] = useState<string | undefined>();
 
   const products: Product[] = [
@@ -79,8 +83,12 @@ function Posbody() {
     },
   ];
 
-  const warehouses = Array.from(new Set(products.map((product) => product.warehouse)));
-  const categories = Array.from(new Set(products.map((product) => product.category)));
+  const warehouses = Array.from(
+    new Set(products.map((product) => product.warehouse))
+  );
+  const categories = Array.from(
+    new Set(products.map((product) => product.category))
+  );
   const brands = Array.from(new Set(products.map((product) => product.brand)));
 
   const filteredProducts = products.filter((product) => {
@@ -337,66 +345,76 @@ function Posbody() {
         onCancel={handleCancel}
         footer={null}
       >
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="font-bold">Received Amount:</label>
-            <Input
-              type="number"
-              value={receivedAmount}
-              onChange={(e) => setReceivedAmount(Number(e.target.value))}
-              className="w-full text-center border rounded"
-            />
+        <div className="flex justify-between">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="font-bold">Received Amount:</label>
+              <Input
+                type="number"
+                value={receivedAmount}
+                onChange={(e) => setReceivedAmount(Number(e.target.value))}
+                className="w-full text-center border rounded"
+              />
+            </div>
+            <div>
+              <label className="font-bold">Paying Amount:</label>
+              <Input
+                type="number"
+                value={total}
+                disabled
+                className="w-full text-center border rounded bg-gray-100"
+              />
+            </div>
+            <div>
+              <label className="font-bold">Payment Type:</label>
+              <Select
+                value={paymentType}
+                onChange={(value) => setPaymentType(value)}
+                className="w-full"
+              >
+                <Select.Option value="Cash">Cash</Select.Option>
+                <Select.Option value="Card">Card</Select.Option>
+                <Select.Option value="Online">Online</Select.Option>
+              </Select>
+            </div>
+            <div>
+              <label className="font-bold">Payment Status:</label>
+              <Input
+                value={paymentStatus}
+                onChange={(e) => setPaymentStatus(e.target.value)}
+                className="w-full text-center border rounded"
+              />
+            </div>
+            <div>
+              <label className="font-bold">Due Amount:</label>
+              <Input
+                type="number"
+                value={Math.max(0, total - receivedAmount).toFixed(2)}
+                disabled
+                className="w-full text-center border rounded bg-gray-100"
+              />
+            </div>
+            <div>
+              <label className="font-bold">Change Return:</label>
+              <Input
+                type="number"
+                value={Math.max(0, changeReturn).toFixed(2)}
+                disabled
+                className="w-full text-center border rounded bg-gray-100"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="font-bold">Notes:</label>
+              <Input.TextArea className="w-full border rounded" rows={3} />
+            </div>
           </div>
           <div>
-            <label className="font-bold">Paying Amount:</label>
-            <Input
-              type="number"
-              value={total}
-              disabled
-              className="w-full text-center border rounded bg-gray-100"
-            />
-          </div>
-          <div>
-            <label className="font-bold">Payment Type:</label>
-            <Select
-              value={paymentType}
-              onChange={(value) => setPaymentType(value)}
-              className="w-full"
-            >
-              <Select.Option value="Cash">Cash</Select.Option>
-              <Select.Option value="Card">Card</Select.Option>
-              <Select.Option value="Online">Online</Select.Option>
-            </Select>
-          </div>
-          <div>
-            <label className="font-bold">Payment Status:</label>
-            <Input
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value)}
-              className="w-full text-center border rounded"
-            />
-          </div>
-          <div>
-            <label className="font-bold">Due Amount:</label>
-            <Input
-              type="number"
-              value={Math.max(0, total - receivedAmount).toFixed(2)}
-              disabled
-              className="w-full text-center border rounded bg-gray-100"
-            />
-          </div>
-          <div>
-            <label className="font-bold">Change Return:</label>
-            <Input
-              type="number"
-              value={Math.max(0, changeReturn).toFixed(2)}
-              disabled
-              className="w-full text-center border rounded bg-gray-100"
-            />
-          </div>
-          <div className="col-span-2">
-            <label className="font-bold">Notes:</label>
-            <Input.TextArea className="w-full border rounded" rows={3} />
+            <p>Selse Date:{new Date().toDateString()}</p>
+            <p>Total Products:</p>
+            <p>Total Amount:</p>
+            <p>Discount:</p>
+            <p>Shipping:</p>
+            <p>Grand Total:</p>
           </div>
         </div>
         <div className="flex justify-end mt-4">
